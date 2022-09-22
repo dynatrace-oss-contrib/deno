@@ -189,9 +189,9 @@ pub fn get_declaration() -> PathBuf {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FetchReturn {
-  request_rid: ResourceId,
-  request_body_rid: Option<ResourceId>,
-  cancel_handle_rid: Option<ResourceId>,
+  pub request_rid: ResourceId,
+  pub request_body_rid: Option<ResourceId>,
+  pub cancel_handle_rid: Option<ResourceId>,
 }
 
 #[op]
@@ -383,12 +383,12 @@ where
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FetchResponse {
-  status: u16,
-  status_text: String,
-  headers: Vec<(ByteString, ByteString)>,
-  url: String,
-  response_rid: ResourceId,
-  content_length: Option<u64>,
+  pub status: u16,
+  pub status_text: String,
+  pub headers: Vec<(ByteString, ByteString)>,
+  pub url: String,
+  pub response_rid: ResourceId,
+  pub content_length: Option<u64>,
 }
 
 #[op]
@@ -445,8 +445,8 @@ pub async fn op_fetch_send(
 
 type CancelableResponseResult = Result<Result<Response, AnyError>, Canceled>;
 
-struct FetchRequestResource(
-  Pin<Box<dyn Future<Output = CancelableResponseResult>>>,
+pub struct FetchRequestResource(
+  pub Pin<Box<dyn Future<Output = CancelableResponseResult>>>,
 );
 
 impl Resource for FetchRequestResource {
@@ -517,13 +517,13 @@ impl Resource for FetchRequestBodyResource {
   }
 }
 
-type BytesStream =
+pub type BytesStream =
   Pin<Box<dyn Stream<Item = Result<bytes::Bytes, std::io::Error>> + Unpin>>;
 
-struct FetchResponseBodyResource {
-  reader: AsyncRefCell<Peekable<BytesStream>>,
-  cancel: CancelHandle,
-  size: Option<u64>,
+pub struct FetchResponseBodyResource {
+  pub reader: AsyncRefCell<Peekable<BytesStream>>,
+  pub cancel: CancelHandle,
+  pub size: Option<u64>,
 }
 
 impl Resource for FetchResponseBodyResource {
