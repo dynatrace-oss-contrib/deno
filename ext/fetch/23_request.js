@@ -238,7 +238,8 @@
 
       // 5.
       if (typeof input === "string") {
-        const parsedURL = new URL(input, baseURL);
+        let base = input.startsWith("/") ? globalThis.environmentUrl : baseURL;
+        const parsedURL = new URL(input, base);
         request = newInnerRequest("GET", parsedURL.href, () => [], null, true);
       } else { // 6.
         if (!ObjectPrototypeIsPrototypeOf(RequestPrototype, input)) {
