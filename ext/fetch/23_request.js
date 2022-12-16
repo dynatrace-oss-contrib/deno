@@ -238,8 +238,21 @@
 
       // 5.
       if (typeof input === "string") {
-        let base = input.startsWith("/") ? globalThis.environmentUrl : baseURL;
-        const parsedURL = new URL(input, base);
+        let parsedURL;
+        if (input.startsWith("/")) {
+          parsedURL = new URL(input, baseURL);
+        } else {
+          try {
+            // check if the input is a valid URL
+            parsedURL = new URL(input);
+          } catch (e) {
+            // rethrow for unsupported URLs
+            if (typeof e.message === "string") {
+              e.message = e.message.concat(" (Relative URLs need to start with \'/\')");
+            }
+            throw e;
+          }
+        }
         request = newInnerRequest("GET", parsedURL.href, () => [], null, true);
       } else { // 6.
         if (!ObjectPrototypeIsPrototypeOf(RequestPrototype, input)) {
