@@ -248,6 +248,7 @@ impl HttpClient {
       None,
       unsafely_ignore_certificate_errors,
       None,
+      None
     )?))
   }
 

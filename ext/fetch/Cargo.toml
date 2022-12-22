@@ -21,6 +21,7 @@ deno_tls.workspace = true
 dyn-clone = "1"
 http.workspace = true
 reqwest.workspace = true
+hyper.workspace = true
 serde.workspace = true
 tokio.workspace = true
 tokio-stream = "0.1.8"
