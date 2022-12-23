@@ -89,7 +89,7 @@ impl Default for Options {
       unsafely_ignore_certificate_errors: None,
       client_cert_chain_and_key: None,
       file_fetch_handler: Rc::new(DefaultFileFetchHandler),
-      dns_resolver: None
+      dns_resolver: None,
     }
   }
 }
@@ -125,7 +125,7 @@ where
           options.proxy.clone(),
           options.unsafely_ignore_certificate_errors.clone(),
           options.client_cert_chain_and_key.clone(),
-          options.dns_resolver.clone()
+          options.dns_resolver.clone(),
         )
         .unwrap()
       });
@@ -617,7 +617,7 @@ where
     args.proxy,
     options.unsafely_ignore_certificate_errors.clone(),
     client_cert_chain_and_key,
-    options.dns_resolver.clone()
+    options.dns_resolver.clone(),
   )?;
 
   let rid = state.resource_table.add(HttpClientResource::new(client));
@@ -633,7 +633,7 @@ pub fn create_http_client(
   proxy: Option<Proxy>,
   unsafely_ignore_certificate_errors: Option<Vec<String>>,
   client_cert_chain_and_key: Option<(String, String)>,
-  dns_resolver: Option<Arc<dyn Resolve>>
+  dns_resolver: Option<Arc<dyn Resolve>>,
 ) -> Result<Client, AnyError> {
   let mut tls_config = deno_tls::create_client_config(
     root_cert_store,
