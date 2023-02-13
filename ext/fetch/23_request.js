@@ -153,10 +153,7 @@ function newInnerRequest(method, url, headerList, body, maybeBlob) {
  * @returns {InnerRequest}
  */
 function cloneInnerRequest(request, skipBody = false) {
-  const headerList = ArrayPrototypeMap(
-    request.headerList,
-    (x) => [x[0], x[1]],
-  );
+  const headerList = ArrayPrototypeMap(request.headerList, (x) => [x[0], x[1]]);
 
   let body = null;
   if (request.body !== null && !skipBody) {
@@ -227,7 +224,9 @@ function validateAndNormalizeMethod(m) {
   }
   const upperCase = byteUpperCase(m);
   if (
-    upperCase === "CONNECT" || upperCase === "TRACE" || upperCase === "TRACK"
+    upperCase === "CONNECT" ||
+    upperCase === "TRACE" ||
+    upperCase === "TRACK"
   ) {
     throw new TypeError("Method is forbidden.");
   }
@@ -258,7 +257,7 @@ class Request {
   get [_mimeType]() {
     const values = getDecodeSplitHeader(
       headerListFromHeaders(this[_headers]),
-      "Content-Type",
+      "Content-Type"
     );
     return extractMimeType(values);
   }
@@ -294,15 +293,27 @@ class Request {
 
     // 5.
     if (typeof input === "string") {
-      const parsedURL = new URL(input, baseURL);
-      request = newInnerRequest(
-        "GET",
-        parsedURL.href,
-        () => [],
-        null,
-        true,
-      );
-    } else { // 6.
+      let parsedURL;
+      if (input.startsWith("/")) {
+        parsedURL = new URL(input, baseURL);
+      } else {
+        try {
+          // check if the input is a valid URL
+          parsedURL = new URL(input);
+        } catch (e) {
+          // rethrow for unsupported URLs
+          if (typeof e.message === "string") {
+            e.message = e.message.concat(
+              " (Relative URLs need to start with '/')"
+            );
+          }
+          throw e;
+        }
+        const parsedURL = new URL(input);
+      }
+      request = newInnerRequest("GET", parsedURL.href, () => [], null, true);
+    } else {
+      // 6.
       if (!ObjectPrototypeIsPrototypeOf(RequestPrototype, input)) {
         throw new TypeError("Unreachable");
       }
@@ -341,7 +352,7 @@ class Request {
         throw webidl.makeException(
           TypeError,
           "`client` must be a Deno.HttpClient",
-          { prefix, context: "Argument 2" },
+          { prefix, context: "Argument 2" }
         );
       }
       request.clientRid = init.client?.rid ?? null;
@@ -366,7 +377,7 @@ class Request {
       let headers = ArrayPrototypeSlice(
         headerListFromHeaders(this[_headers]),
         0,
-        headerListFromHeaders(this[_headers]).length,
+        headerListFromHeaders(this[_headers]).length
       );
       if (init.headers !== undefined) {
         headers = init.headers;
@@ -374,7 +385,7 @@ class Request {
       ArrayPrototypeSplice(
         headerListFromHeaders(this[_headers]),
         0,
-        headerListFromHeaders(this[_headers]).length,
+        headerListFromHeaders(this[_headers]).length
       );
       fillHeaders(this[_headers], headers);
     }
@@ -388,8 +399,7 @@ class Request {
     // 34.
     if (
       (request.method === "GET" || request.method === "HEAD") &&
-      ((init.body !== undefined && init.body !== null) ||
-        inputBody !== null)
+      ((init.body !== undefined && init.body !== null) || inputBody !== null)
     ) {
       throw new TypeError("Request with GET/HEAD method cannot have body.");
     }
@@ -473,22 +483,18 @@ class Request {
     return fromInnerRequest(
       newReq,
       newSignal,
-      guardFromHeaders(this[_headers]),
+      guardFromHeaders(this[_headers])
     );
   }
 
   [SymbolFor("Deno.customInspect")](inspect) {
-    return inspect(createFilteredInspectProxy({
-      object: this,
-      evaluate: ObjectPrototypeIsPrototypeOf(RequestPrototype, this),
-      keys: [
-        "bodyUsed",
-        "headers",
-        "method",
-        "redirect",
-        "url",
-      ],
-    }));
+    return inspect(
+      createFilteredInspectProxy({
+        object: this,
+        evaluate: ObjectPrototypeIsPrototypeOf(RequestPrototype, this),
+        keys: ["bodyUsed", "headers", "method", "redirect", "url"],
+      })
+    );
   }
 }
 
@@ -498,7 +504,7 @@ mixinBody(RequestPrototype, _body, _mimeType);
 
 webidl.converters["Request"] = webidl.createInterfaceConverter(
   "Request",
-  RequestPrototype,
+  RequestPrototype
 );
 webidl.converters["RequestInfo_DOMString"] = (V, opts) => {
   // Union for (Request or USVString)
@@ -512,11 +518,7 @@ webidl.converters["RequestInfo_DOMString"] = (V, opts) => {
 };
 webidl.converters["RequestRedirect"] = webidl.createEnumConverter(
   "RequestRedirect",
-  [
-    "follow",
-    "error",
-    "manual",
-  ],
+  ["follow", "error", "manual"]
 );
 webidl.converters["RequestInit"] = webidl.createDictionaryConverter(
   "RequestInit",
@@ -526,18 +528,18 @@ webidl.converters["RequestInit"] = webidl.createDictionaryConverter(
     {
       key: "body",
       converter: webidl.createNullableConverter(
-        webidl.converters["BodyInit_DOMString"],
+        webidl.converters["BodyInit_DOMString"]
       ),
     },
     { key: "redirect", converter: webidl.converters["RequestRedirect"] },
     {
       key: "signal",
       converter: webidl.createNullableConverter(
-        webidl.converters["AbortSignal"],
+        webidl.converters["AbortSignal"]
       ),
     },
     { key: "client", converter: webidl.converters.any },
-  ],
+  ]
 );
 
 /**
