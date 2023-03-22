@@ -319,10 +319,8 @@
       // 5.
       if (typeof input === "string") {
         let parsedURL;
-        let additionalHeaders = [];
         if (input.startsWith("/")) {
           parsedURL = new URL(input, baseURL);
-          additionalHeaders = [["DT_IS_LOCAL_REQUEST", "true"]];
         } else {
           try {
             // check if the input is a valid URL
@@ -340,7 +338,7 @@
         request = newInnerRequest(
           () => "GET",
           parsedURL.href,
-          () => additionalHeaders,
+          () => [],
           null,
           true,
         );
