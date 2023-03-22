@@ -68,7 +68,7 @@
    * @param {Uint8Array | null} body
    * @returns {{ requestRid: number, requestBodyRid: number | null }}
    */
-  function opFetch(method, url, headers, clientRid, hasBody, bodyLength, body, isLocalRequest) {
+  function opFetch(method, url, headers, clientRid, hasBody, bodyLength, body, isRelative) {
     return ops.op_fetch(
       method,
       url,
@@ -77,7 +77,7 @@
       hasBody,
       bodyLength,
       body,
-      isLocalRequest
+      isRelative
     );
   }
 
@@ -112,10 +112,9 @@
    * @param {InnerRequest} req
    * @param {boolean} recursive
    * @param {AbortSignal} terminator
-   * @param {boolean} isLocalRequest
    * @returns {Promise<InnerResponse>}
    */
-  async function mainFetch(req, recursive, terminator, isLocalRequest) {
+  async function mainFetch(req, recursive, terminator) {
     if (req.blobUrlEntry !== null) {
       if (req.method !== "GET") {
         throw new TypeError("Blob URL fetch only supports GET method.");
@@ -190,7 +189,7 @@
       ObjectPrototypeIsPrototypeOf(Uint8ArrayPrototype, reqBody)
         ? reqBody
         : null,
-      isLocalRequest,
+      req.isRelative,
     );
 
     function onAbort() {
@@ -309,7 +308,7 @@
           );
         case "follow":
           core.close(resp.responseRid);
-          return httpRedirectFetch(req, response, terminator, isLocalRequest);
+          return httpRedirectFetch(req, response, terminator);
         case "manual":
           break;
       }
@@ -342,10 +341,9 @@
    * @param {InnerRequest} request
    * @param {InnerResponse} response
    * @param {AbortSignal} terminator
-   * @param {boolean} isLocalRequest
    * @returns {Promise<InnerResponse>}
    */
-  function httpRedirectFetch(request, response, terminator, isLocalRequest) {
+  function httpRedirectFetch(request, response, terminator) {
     const locationHeaders = ArrayPrototypeFilter(
       response.headerList,
       (entry) => byteLowerCase(entry[0]) === "location",
@@ -402,7 +400,7 @@
       request.body = res.body;
     }
     ArrayPrototypePush(request.urlList, () => locationURL.href);
-    return mainFetch(request, true, terminator, isLocalRequest);
+    return mainFetch(request, true, terminator);
   }
 
   /**
@@ -410,8 +408,6 @@
    * @param {RequestInit} init
    */
   function fetch(input, init = {}) {
-    let isLocalRequest = typeof input === "string" && input.startsWith("/");
-
     // There is an async dispatch later that causes a stack trace disconnect.
     // We reconnect it by assigning the result of that dispatch to `opPromise`,
     // awaiting `opPromise` in an inner function also named `fetch()` and
@@ -456,7 +452,7 @@
       // 12.
       opPromise = PromisePrototypeCatch(
         PromisePrototypeThen(
-          mainFetch(request, false, requestObject.signal, isLocalRequest),
+          mainFetch(request, false, requestObject.signal),
           (response) => {
             // 12.1.
             if (locallyAborted) return;

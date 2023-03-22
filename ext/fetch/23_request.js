@@ -33,6 +33,7 @@
     ArrayPrototypeSlice,
     ArrayPrototypeSplice,
     ObjectKeys,
+    ObjectDefineProperty,
     ObjectPrototypeIsPrototypeOf,
     RegExpPrototypeTest,
     Symbol,
@@ -317,10 +318,12 @@
       let signal = null;
 
       // 5.
+      let isRelative = false;
       if (typeof input === "string") {
         let parsedURL;
         if (input.startsWith("/")) {
           parsedURL = new URL(input, baseURL);
+            isRelative = true;
         } else {
           try {
             // check if the input is a valid URL
@@ -351,7 +354,9 @@
         request = cloneInnerRequest(originalReq, true);
         request.redirectCount = 0; // reset to 0 - cloneInnerRequest copies the value
         signal = input[_signal];
+        isRelative = originalReq.isRelative;
       }
+      ObjectDefineProperty(request, "isRelative", {value: isRelative, writable: false, enumerable: false, configurable: false});
 
       // 12. is folded into the else statement of step 6 above.
 
