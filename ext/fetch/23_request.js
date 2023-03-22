@@ -356,7 +356,13 @@
         signal = input[_signal];
         isRelative = originalReq.isRelative;
       }
-      ObjectDefineProperty(request, "isRelative", {value: isRelative, writable: false, enumerable: false, configurable: false});
+      // add `isRelative` as read-only property (instead of just doing
+      // `request.isRelative = isRelative;`) to prevent accidental or undesired changes
+      ObjectDefineProperty(request, "isRelative", {
+        value: isRelative,
+        writable: false,enumerable: false,
+        configurable: false
+      });
 
       // 12. is folded into the else statement of step 6 above.
 

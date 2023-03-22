@@ -413,7 +413,6 @@
     // awaiting `opPromise` in an inner function also named `fetch()` and
     // returning the result from that.
     let opPromise = undefined;
-
     // 1.
     const result = new Promise((resolve, reject) => {
       const prefix = "Failed to call 'fetch'";
