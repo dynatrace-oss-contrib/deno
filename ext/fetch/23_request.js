@@ -360,8 +360,9 @@
       // `request.isRelative = isRelative;`) to prevent accidental or undesired changes
       ObjectDefineProperty(request, "isRelative", {
         value: isRelative,
-        writable: false,enumerable: false,
-        configurable: false
+        writable: false,
+        enumerable: false,
+        configurable: false,
       });
 
       // 12. is folded into the else statement of step 6 above.
