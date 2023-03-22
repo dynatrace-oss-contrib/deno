@@ -323,7 +323,7 @@
         let parsedURL;
         if (input.startsWith("/")) {
           parsedURL = new URL(input, baseURL);
-            isRelative = true;
+          isRelative = true;
         } else {
           try {
             // check if the input is a valid URL
