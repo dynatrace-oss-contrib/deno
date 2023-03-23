@@ -291,11 +291,13 @@ class Request {
     // 4.
     let signal = null;
 
-    // 5.
+    //
+    let isRelative = false;
     if (typeof input === "string") {
       let parsedURL;
       if (input.startsWith("/")) {
         parsedURL = new URL(input, baseURL);
+        isRelative = true;
       } else {
         try {
           // check if the input is a valid URL
@@ -322,7 +324,16 @@ class Request {
       request = cloneInnerRequest(originalReq, true);
       request.redirectCount = 0; // reset to 0 - cloneInnerRequest copies the value
       signal = input[_signal];
+      isRelative = originalReq.isRelative;
     }
+    // add `isRelative` as read-only property (instead of just doing
+    // `request.isRelative = isRelative;`) to prevent accidental or undesired changes
+    ObjectDefineProperty(request, "isRelative", {
+      value: isRelative,
+      writable: false,
+      enumerable: false,
+      configurable: false,
+    });
 
     // 12. is folded into the else statement of step 6 above.
 

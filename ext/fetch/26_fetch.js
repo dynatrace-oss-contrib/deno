@@ -69,7 +69,16 @@ const requestBodyReaders = new SafeWeakMap();
  * @param {Uint8Array | null} body
  * @returns {{ requestRid: number, requestBodyRid: number | null }}
  */
-function opFetch(method, url, headers, clientRid, hasBody, bodyLength, body) {
+function opFetch(
+  method,
+  url,
+  headers,
+  clientRid,
+  hasBody,
+  bodyLength,
+  body,
+  isRelative
+) {
   return ops.op_fetch(
     method,
     url,
@@ -78,6 +87,7 @@ function opFetch(method, url, headers, clientRid, hasBody, bodyLength, body) {
     hasBody,
     bodyLength,
     body,
+    isRelative
   );
 }
 
@@ -150,7 +160,7 @@ async function mainFetch(req, recursive, terminator) {
     if (
       ObjectPrototypeIsPrototypeOf(
         ReadableStreamPrototype,
-        req.body.streamOrStatic,
+        req.body.streamOrStatic
       )
     ) {
       if (
@@ -187,6 +197,7 @@ async function mainFetch(req, recursive, terminator) {
     reqBody !== null,
     req.body?.length,
     ObjectPrototypeIsPrototypeOf(Uint8ArrayPrototype, reqBody) ? reqBody : null,
+    req.isRelative
   );
 
   function onAbort() {
@@ -228,7 +239,7 @@ async function mainFetch(req, recursive, terminator) {
         if (done) break;
         if (!ObjectPrototypeIsPrototypeOf(Uint8ArrayPrototype, val)) {
           const error = new TypeError(
-            "Item in request body ReadableStream is not a Uint8Array",
+            "Item in request body ReadableStream is not a Uint8Array"
           );
           await reader.cancel(error);
           // TODO(lucacasonato): propagate error into response body stream
@@ -301,7 +312,7 @@ async function mainFetch(req, recursive, terminator) {
       case "error":
         core.close(resp.responseRid);
         return networkError(
-          "Encountered redirect while redirect mode is set to 'error'",
+          "Encountered redirect while redirect mode is set to 'error'"
         );
       case "follow":
         core.close(resp.responseRid);
@@ -319,7 +330,7 @@ async function mainFetch(req, recursive, terminator) {
       core.close(resp.responseRid);
     } else {
       response.body = new InnerBody(
-        createResponseBodyStream(resp.responseRid, terminator),
+        createResponseBodyStream(resp.responseRid, terminator)
       );
     }
   }
@@ -343,14 +354,14 @@ async function mainFetch(req, recursive, terminator) {
 function httpRedirectFetch(request, response, terminator) {
   const locationHeaders = ArrayPrototypeFilter(
     response.headerList,
-    (entry) => byteLowerCase(entry[0]) === "location",
+    (entry) => byteLowerCase(entry[0]) === "location"
   );
   if (locationHeaders.length === 0) {
     return response;
   }
   const locationURL = new URL(
     locationHeaders[0][1],
-    response.url() ?? undefined,
+    response.url() ?? undefined
   );
   if (locationURL.hash === "") {
     locationURL.hash = request.currentUrl().hash;
@@ -368,7 +379,7 @@ function httpRedirectFetch(request, response, terminator) {
     request.body.source === null
   ) {
     return networkError(
-      "Can not redeliver a streaming request body after a redirect",
+      "Can not redeliver a streaming request body after a redirect"
     );
   }
   if (
@@ -384,7 +395,7 @@ function httpRedirectFetch(request, response, terminator) {
       if (
         ArrayPrototypeIncludes(
           REQUEST_BODY_HEADER_NAMES,
-          byteLowerCase(request.headerList[i][0]),
+          byteLowerCase(request.headerList[i][0])
         )
       ) {
         ArrayPrototypeSplice(request.headerList, i, 1);
@@ -431,9 +442,7 @@ function fetch(input, init = {}) {
     // 10.
     function onabort() {
       locallyAborted = true;
-      reject(
-        abortFetch(request, responseObject, requestObject.signal.reason),
-      );
+      reject(abortFetch(request, responseObject, requestObject.signal.reason));
     }
     requestObject.signal[abortSignal.add](onabort);
 
@@ -455,11 +464,7 @@ function fetch(input, init = {}) {
           // 12.2.
           if (response.aborted) {
             reject(
-              abortFetch(
-                request,
-                responseObject,
-                requestObject.signal.reason,
-              ),
+              abortFetch(request, responseObject, requestObject.signal.reason)
             );
             requestObject.signal[abortSignal.remove](onabort);
             return;
@@ -467,7 +472,7 @@ function fetch(input, init = {}) {
           // 12.3.
           if (response.type === "error") {
             const err = new TypeError(
-              "Fetch failed: " + (response.error ?? "unknown error"),
+              "Fetch failed: " + (response.error ?? "unknown error")
             );
             reject(err);
             requestObject.signal[abortSignal.remove](onabort);
@@ -476,12 +481,12 @@ function fetch(input, init = {}) {
           responseObject = fromInnerResponse(response, "immutable");
           resolve(responseObject);
           requestObject.signal[abortSignal.remove](onabort);
-        },
+        }
       ),
       (err) => {
         reject(err);
         requestObject.signal[abortSignal.remove](onabort);
-      },
+      }
     );
   });
   if (opPromise) {
@@ -567,7 +572,7 @@ function handleWasmStreaming(source, rid) {
         // 2.7
         () => core.close(rid),
         // 2.8
-        (err) => core.abortWasmStreaming(rid, err),
+        (err) => core.abortWasmStreaming(rid, err)
       );
     } else {
       // 2.7
